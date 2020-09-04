@@ -108,9 +108,8 @@ int main(int argc, char** argv, char** env) {
         converter->AXI_BREADY = 0;
         converter->AXI_RREADY = 0;
 
-        converter->write_address_error = 0;
+        converter->address_error = 0;
         converter->write_error = 0;
-        converter->read_address_error = 0;
         converter->read_data = 0;
 
         till_user_update();
@@ -184,7 +183,7 @@ int main(int argc, char** argv, char** env) {
 
         check(converter->write == 1);
         check(converter->write_data == 0xFF00FF00);
-        check(converter->write_address == converter->AXI_AWADDR);
+        check(converter->address == converter->AXI_AWADDR);
         check(converter->write_byteenable == converter->AXI_WSTRB);
         check(converter->read == 0);
         
@@ -209,7 +208,7 @@ int main(int argc, char** argv, char** env) {
         converter->AXI_WVALID = 1;
         converter->AXI_WDATA = 0xFF00FF00;
         converter->AXI_WSTRB = 0xF;
-        converter->write_address_error = 1;
+        converter->address_error = 1;
         converter->AXI_AWVALID = 1;
         converter->AXI_AWADDR = 100;
         converter->eval();
@@ -221,7 +220,7 @@ int main(int argc, char** argv, char** env) {
 
         check(converter->write == 1);
         check(converter->write_data == 0xFF00FF00);
-        check(converter->write_address == converter->AXI_AWADDR);
+        check(converter->address == converter->AXI_AWADDR);
         check(converter->write_byteenable == converter->AXI_WSTRB);
         check(converter->read == 0);
         
@@ -229,7 +228,7 @@ int main(int argc, char** argv, char** env) {
         next_cycle();
         converter->AXI_WVALID = 0;
         converter->AXI_AWVALID = 0;
-        converter->write_address_error = 0;
+        converter->address_error = 0;
         converter->eval();
         check(converter->AXI_AWREADY == 0);
         check(converter->AXI_WREADY == 0);
@@ -246,7 +245,7 @@ int main(int argc, char** argv, char** env) {
         converter->AXI_WVALID = 1;
         converter->AXI_WDATA = 0xFF00FF00;
         converter->AXI_WSTRB = 0xF;
-        converter->write_address_error = 0;
+        converter->address_error = 0;
         converter->AXI_AWVALID = 1;
         converter->AXI_AWADDR = 101;
         converter->eval();
@@ -258,7 +257,7 @@ int main(int argc, char** argv, char** env) {
 
         check(converter->write == 1);
         check(converter->write_data == 0xFF00FF00);
-        check(converter->write_address == converter->AXI_AWADDR);
+        check(converter->address == converter->AXI_AWADDR);
         check(converter->write_byteenable == converter->AXI_WSTRB);
         check(converter->read == 0);
         
@@ -266,7 +265,7 @@ int main(int argc, char** argv, char** env) {
         next_cycle();
         converter->AXI_WVALID = 0;
         converter->AXI_AWVALID = 0;
-        converter->write_address_error = 0;
+        converter->address_error = 0;
         converter->eval();
         check(converter->AXI_AWREADY == 0);
         check(converter->AXI_WREADY == 0);
@@ -294,7 +293,7 @@ int main(int argc, char** argv, char** env) {
 
         check(converter->write == 1);
         check(converter->write_data == 0xFF00FF00);
-        check(converter->write_address == converter->AXI_AWADDR);
+        check(converter->address == converter->AXI_AWADDR);
         check(converter->write_byteenable == converter->AXI_WSTRB);
         check(converter->read == 0);
         
@@ -331,14 +330,14 @@ int main(int argc, char** argv, char** env) {
 
         check(converter->write == 0);
         check(converter->read == 1);
-        check(converter->read_address == converter->AXI_ARADDR);
+        check(converter->address == converter->AXI_ARADDR);
 
         
         test_begin(202, "Read request done");
         next_cycle();
         converter->AXI_ARVALID = 0;
         converter->read_data = 0x00FF0000;
-        converter->read_address_error = 0;
+        converter->address_error = 0;
         converter->AXI_RREADY = 1;
         converter->eval();
         check(converter->AXI_AWREADY == 0);
@@ -360,7 +359,7 @@ int main(int argc, char** argv, char** env) {
         converter->AXI_ARVALID = 1;
         converter->AXI_ARADDR = 104; // 4 byte aligned
         converter->read_data = 0x00FF00FF;
-        converter->read_address_error = 1;
+        converter->address_error = 1;
         converter->eval();
         check(converter->AXI_AWREADY == 0);
         check(converter->AXI_WREADY == 0);
@@ -370,14 +369,14 @@ int main(int argc, char** argv, char** env) {
 
         check(converter->write == 0);
         check(converter->read == 1);
-        check(converter->read_address == converter->AXI_ARADDR);
+        check(converter->address == converter->AXI_ARADDR);
 
         
         test_begin(204, "Read request done w/ address error");
         next_cycle();
         converter->AXI_ARVALID = 0;
         converter->read_data = 0x00FF0000;
-        converter->read_address_error = 0;
+        converter->address_error = 0;
         converter->AXI_RREADY = 1;
         converter->eval();
         check(converter->AXI_AWREADY == 0);
@@ -397,7 +396,7 @@ int main(int argc, char** argv, char** env) {
         converter->AXI_ARVALID = 1;
         converter->AXI_ARADDR = 101; // 4 byte aligned
         converter->read_data = 0x00FF00FF;
-        converter->read_address_error = 1;
+        converter->address_error = 1;
         converter->eval();
         check(converter->AXI_AWREADY == 0);
         check(converter->AXI_WREADY == 0);
@@ -407,14 +406,14 @@ int main(int argc, char** argv, char** env) {
 
         check(converter->write == 0);
         check(converter->read == 1);
-        check(converter->read_address == converter->AXI_ARADDR);
+        check(converter->address == converter->AXI_ARADDR);
 
         
         test_begin(206, "Read request done w/ missaligned address error");
         next_cycle();
         converter->AXI_ARVALID = 0;
         converter->read_data = 0x00FF0000;
-        converter->read_address_error = 0;
+        converter->address_error = 0;
         converter->AXI_RREADY = 1;
         converter->eval();
         check(converter->AXI_AWREADY == 0);

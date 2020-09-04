@@ -5,8 +5,8 @@ module AXI4LiteConverter(
     AXI_BRESP, AXI_BVALID, AXI_BREADY,
     AXI_ARADDR, AXI_ARVALID, AXI_ARREADY,
     AXI_RDATA, AXI_RRESP, AXI_RVALID, AXI_RREADY,
-    write, write_address, write_data, write_byteenable, write_address_error, write_error,
-    read, read_address, read_data, read_address_error
+    write, address, write_data, write_byteenable, write_error,
+    read, read_data, address_error
 );
 
 
@@ -46,18 +46,18 @@ module AXI4LiteConverter(
     output reg                  AXI_RVALID;
     input                       AXI_RREADY;
 
-	
-	output reg		write;
-    output [31:0] 	write_address;
-	output [31:0]	write_data;
-    output [3:0]    write_byteenable;
-    input           write_address_error;
+	input           address_error;
     input           write_error;
 
+    output reg [31:0]	address;
+
+	output reg		write;
+	output [31:0]	write_data;
+    output [3:0]    write_byteenable;
+    
+
     output reg		read; // used to retire read from register
-	output [31:0]	read_address;
 	input  [31:0]	read_data; // should not care about read request, always contains data accrding to read_address or address_error is asserted
-    input           read_address_error; // should be valid 
 	
 
 
@@ -69,16 +69,14 @@ reg [1:0] state_nxt;  // COMB
 localparam STATE_ACTIVE = 2'd0,
     STATE_READ_RESPOND = 2'd1,
     STATE_WRITE_RESPOND = 2'd2;
-assign write_address = AXI_AWADDR;
 assign write_data = AXI_WDATA;
 assign write_byteenable = AXI_WSTRB;
-assign read_address = AXI_ARADDR;
-
 
 always @(posedge clk) begin : main_always_ff
     if(!rst_n) begin
         AXI_RRESP <= 0;
         AXI_BRESP <= 0;
+        state <= STATE_ACTIVE;
     end else begin
         state <= state_nxt;
         AXI_RRESP <= AXI_RRESP_nxt;
@@ -101,29 +99,34 @@ always @* begin : main_always_comb
     AXI_RDATA = saved_readdata;
     write = 0;
     read = 0;
+    address = AXI_ARADDR;
     case(state)
         STATE_ACTIVE: begin
             if(AXI_AWVALID && AXI_WVALID) begin
+                address = AXI_AWADDR;
+                write = 1;
+
                 AXI_AWREADY = 1; // Address write request accepted
                 AXI_WREADY = 1;
                 AXI_BRESP_nxt = 2'b10;
-                if(write_address_error)
+                if(address_error)
                     AXI_BRESP_nxt = 2'b10;
                 else if(write_error)
                     AXI_BRESP_nxt = 2'b11;
                 else if(AXI_AWADDR[1:0] == 2'b00) // Alligned only
                     AXI_BRESP_nxt = 2'b00;
                 state_nxt = STATE_WRITE_RESPOND;
-                write = 1;
             end else if(AXI_ARVALID) begin
+                address = AXI_ARADDR;
+                read = 1;
+
                 AXI_ARREADY = 1;
-                if(AXI_ARADDR[1:0] == 2'b00 && !read_address_error)
+                if(AXI_ARADDR[1:0] == 2'b00 && !address_error)
                     AXI_RRESP_nxt = 2'b00;
                 else
                     AXI_RRESP_nxt = 2'b10;
                 saved_readdata_nxt = read_data;
                 state_nxt = STATE_READ_RESPOND;
-                read = 1;
             end
         end
         STATE_WRITE_RESPOND: begin
