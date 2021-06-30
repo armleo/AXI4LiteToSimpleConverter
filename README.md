@@ -1,3 +1,6 @@
+# Deprecated
+This repository is deprecated and outdated. This is now part of ArmleoCPU project, See https://github.com/armleo/ArmleoCPU/ for new versions.
+
 # AXI4 Lite to simple interface converter
 Name says it all. Read source code or provided examples to understand how it works
 
